@@ -59,7 +59,7 @@ local function button(label, x, y, width, callback)
 end
 
 font("GatherIndicatorPlus", "GameFontNormalLarge", 16, -16)
-font("Gathering minimap settings | Diagnostic prototype v0.2.1", "GameFontHighlightSmall", 16, -42)
+font("Gathering minimap settings | Diagnostic prototype v0.2.2", "GameFontHighlightSmall", 16, -42)
 
 -- Two-column layout. All widgets share panel as their parent: no scroll frame.
 heading("General", 16, -78)
@@ -86,6 +86,7 @@ heading("Diagnostics", right, -330)
 checkbox("Enable diagnostic event logging", "debug", right, -352)
 button("Report APIs", right + 4, -405, 110, function() if GIP.Report then GIP.Report() end end)
 button("Scan Minimap", right + 124, -405, 120, function() if GIP.Scan then GIP.Scan() end end)
+button("Probe Dot", right + 4, -444, 110, function() if GIP.Probe then GIP.Probe() end end)
 button("Defaults", 16, -485, 96, function()
     if GIP.ResetDefaults then GIP.ResetDefaults() end
     if GIP.RefreshOptions then GIP.RefreshOptions() end
