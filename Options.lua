@@ -1,9 +1,15 @@
 local _, GIP = ...
 local panel = CreateFrame("Frame", "GatherIndicatorPlusOptionsPanel")
 panel.name = "GatherIndicatorPlus"
+local scroll = CreateFrame("ScrollFrame", "GIPOptionsScrollFrame", panel, "UIPanelScrollFrameTemplate")
+scroll:SetPoint("TOPLEFT", 0, 0)
+scroll:SetPoint("BOTTOMRIGHT", -28, 0)
+local content = CreateFrame("Frame", nil, scroll)
+content:SetSize(520, 720)
+scroll:SetScrollChild(content)
 local controls, radios, sliders = {}, {}, {}
 local function font(text, template, x, y, width)
-    local f = panel:CreateFontString(nil, "ARTWORK", template)
+    local f = content:CreateFontString(nil, "ARTWORK", template)
     f:SetPoint("TOPLEFT", x, y)
     if width then f:SetWidth(width); f:SetJustifyH("LEFT") end
     f:SetText(text)
@@ -13,7 +19,7 @@ font("GatherIndicatorPlus", "GameFontNormalLarge", 16, -16)
 font("Gathering minimap settings | Diagnostic prototype v0.2.0", "GameFontHighlightSmall", 16, -42)
 local function heading(text, y) font(text, "GameFontNormal", 16, y) end
 local function checkbox(label, key, y, supported)
-    local c = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
+    local c = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
     c:SetPoint("TOPLEFT", 16, y)
     local t = c.Text or c.text
     if t then t:SetText(label) end
@@ -24,7 +30,7 @@ local function checkbox(label, key, y, supported)
     controls[key] = c
 end
 local function radio(label, key, value, y, supported)
-    local c = CreateFrame("CheckButton", nil, panel, "UIRadioButtonTemplate")
+    local c = CreateFrame("CheckButton", nil, content, "UIRadioButtonTemplate")
     c:SetPoint("TOPLEFT", 24, y)
     local t = font(label, "GameFontHighlight", 54, y - 5, 390)
     if not supported then c:Disable(); t:SetTextColor(0.5, 0.5, 0.5) end
@@ -56,7 +62,7 @@ local function slider(label, key, minimum, maximum, step, y, supported, suffix)
     sliders[#sliders + 1] = { control = s, key = key }
 end
 local function button(label, x, y, width, callback)
-    local b = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    local b = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
     b:SetSize(width, 24)
     b:SetPoint("TOPLEFT", x, y)
     b:SetText(label)
