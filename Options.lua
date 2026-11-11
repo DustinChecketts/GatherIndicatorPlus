@@ -1,56 +1,97 @@
 local _, GIP = ...
 local panel = CreateFrame("Frame", "GatherIndicatorPlusOptionsPanel")
 panel.name = "GatherIndicatorPlus"
-local controls = {}
-local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-title:SetPoint("TOPLEFT", 16, -16)
-title:SetText("GatherIndicatorPlus")
-local subtitle = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
-subtitle:SetText("Gathering minimap enhancements | Diagnostic prototype v0.1.1")
-local function checkbox(label, key, y)
-    local button = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
-    button:SetPoint("TOPLEFT", 16, y)
-    local labelRegion = button.Text or button.text
-    if labelRegion then labelRegion:SetText(label) end
-    controls[key] = button
-    button:SetScript("OnClick", function(self)
-        if not GIP.db then return end
-        GIP.db[key] = self:GetChecked() and true or false
-        if key == "debug" then GIP.Print("Diagnostic logging " .. (GIP.db.debug and "enabled" or "disabled")) end
+local controls, radios, sliders = {}, {}, {}
+local function font(text, template, x, y, width)
+    local f = panel:CreateFontString(nil, "ARTWORK", template)
+    f:SetPoint("TOPLEFT", x, y)
+    if width then f:SetWidth(width); f:SetJustifyH("LEFT") end
+    f:SetText(text)
+    return f
+end
+font("GatherIndicatorPlus", "GameFontNormalLarge", 16, -16)
+font("Gathering minimap settings | Diagnostic prototype v0.2.0", "GameFontHighlightSmall", 16, -42)
+local function heading(text, y) font(text, "GameFontNormal", 16, y) end
+local function checkbox(label, key, y, supported)
+    local c = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
+    c:SetPoint("TOPLEFT", 16, y)
+    local t = c.Text or c.text
+    if t then t:SetText(label) end
+    c:SetScript("OnClick", function(self)
+        if GIP.db then GIP.db[key] = self:GetChecked() and true or false end
     end)
+    if not supported then c:Disable() end
+    controls[key] = c
 end
-local function heading(text, y)
-    local font = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    font:SetPoint("TOPLEFT", 16, y)
-    font:SetText(text)
+local function radio(label, key, value, y, supported)
+    local c = CreateFrame("CheckButton", nil, panel, "UIRadioButtonTemplate")
+    c:SetPoint("TOPLEFT", 24, y)
+    local t = font(label, "GameFontHighlight", 54, y - 5, 390)
+    if not supported then c:Disable(); t:SetTextColor(0.5, 0.5, 0.5) end
+    c:SetScript("OnClick", function()
+        if not GIP.db then return end
+        GIP.db[key] = value
+        if GIP.RefreshOptions then GIP.RefreshOptions() end
+    end)
+    radios[#radios + 1] = { control = c, key = key, value = value }
 end
-heading("General", -66)
-checkbox("Enable GatherIndicatorPlus", "enabled", -88)
-checkbox("Show gathering difficulty indicators (when supported)", "showIndicators", -118)
-heading("Diagnostics", -160)
-checkbox("Enable diagnostic logging", "debug", -182)
-local note = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-note:SetPoint("TOPLEFT", 20, -218)
-note:SetWidth(460)
-note:SetJustifyH("LEFT")
-note:SetText("Diagnostic logging is off by default. Manual reports and scans are always available below. This prototype does not yet alter minimap dots.")
+local function slider(label, key, minimum, maximum, step, y, supported, suffix)
+    local s = CreateFrame("Slider", "GIPSlider" .. key, panel, "OptionsSliderTemplate")
+    s:SetPoint("TOPLEFT", 22, y)
+    s:SetSize(235, 16)
+    s:SetMinMaxValues(minimum, maximum)
+    s:SetValueStep(step)
+    if s.SetObeyStepOnDrag then s:SetObeyStepOnDrag(true) end
+    local labelRegion = _G[s:GetName() .. "Text"]
+    local low = _G[s:GetName() .. "Low"]
+    local high = _G[s:GetName() .. "High"]
+    if low then low:SetText(tostring(minimum)) end
+    if high then high:SetText(tostring(maximum)) end
+    s:SetScript("OnValueChanged", function(self, value)
+        local rounded = math.floor(value / step + 0.5) * step
+        if GIP.db and supported then GIP.db[key] = rounded end
+        if labelRegion then labelRegion:SetText(label .. ": " .. tostring(rounded) .. (suffix or "")) end
+    end)
+    if not supported then s:Disable() end
+    sliders[#sliders + 1] = { control = s, key = key }
+end
 local function button(label, x, y, width, callback)
-    local control = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    control:SetSize(width, 24)
-    control:SetPoint("TOPLEFT", x, y)
-    control:SetText(label)
-    control:SetScript("OnClick", callback)
+    local b = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    b:SetSize(width, 24)
+    b:SetPoint("TOPLEFT", x, y)
+    b:SetText(label)
+    b:SetScript("OnClick", callback)
 end
-button("Report APIs", 16, -282, 110, function() if GIP.Report then GIP.Report() end end)
-button("Scan Minimap", 136, -282, 120, function() if GIP.Scan then GIP.Scan() end end)
-button("Defaults", 16, -334, 96, function()
+heading("General", -70)
+checkbox("Enable GatherIndicatorPlus", "enabled", -90, true)
+heading("Node appearance (pending API feasibility)", -132)
+radio("Resource icons", "markerMode", "icon", -154, false)
+radio("Blizzard tracking dots", "markerMode", "dot", -180, false)
+slider("Icon size", "iconSize", 8, 32, 1, -218, false, " px")
+slider("Scale", "scale", 50, 200, 5, -268, false, "%")
+slider("Opacity", "opacity", 20, 100, 5, -318, false, "%")
+heading("Skill difficulty (pending API feasibility)", -364)
+radio("Chevrons / minus", "indicatorMode", "chevrons", -386, false)
+radio("Color-coded marker", "indicatorMode", "color", -412, false)
+radio("Both", "indicatorMode", "both", -438, false)
+radio("Off", "indicatorMode", "none", -464, false)
+heading("Diagnostics", -504)
+checkbox("Enable diagnostic event logging", "debug", -526, true)
+button("Report APIs", 16, -565, 110, function() if GIP.Report then GIP.Report() end end)
+button("Scan Minimap", 136, -565, 120, function() if GIP.Scan then GIP.Scan() end end)
+button("Defaults", 16, -604, 96, function()
     if GIP.ResetDefaults then GIP.ResetDefaults() end
-    for key, control in pairs(controls) do control:SetChecked(GIP.db and GIP.db[key]) end
+    if GIP.RefreshOptions then GIP.RefreshOptions() end
 end)
-panel:SetScript("OnShow", function()
-    for key, control in pairs(controls) do control:SetChecked(GIP.db and GIP.db[key]) end
-end)
+font("Gray: minus | Green: 1 chevron | Yellow: 2 | Orange: 3 | Red: minus", "GameFontHighlightSmall", 16, -640, 500)
+font("Visual controls are disabled until node access is verified. Preferences are stored in GIPDB.", "GameFontHighlightSmall", 16, -664, 500)
+function GIP.RefreshOptions()
+    if not GIP.db then return end
+    for key, c in pairs(controls) do c:SetChecked(GIP.db[key]) end
+    for _, r in ipairs(radios) do r.control:SetChecked(GIP.db[r.key] == r.value) end
+    for _, s in ipairs(sliders) do s.control:SetValue(GIP.db[s.key] or 0) end
+end
+panel:SetScript("OnShow", GIP.RefreshOptions)
 local category
 if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
     category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
@@ -65,6 +106,6 @@ function GIP.OpenOptions()
         InterfaceOptionsFrame_OpenToCategory(panel)
         InterfaceOptionsFrame_OpenToCategory(panel)
     else
-        GIP.Print("Options panel registration is unavailable on this client.")
+        GIP.Print("Options registration unavailable.")
     end
 end
