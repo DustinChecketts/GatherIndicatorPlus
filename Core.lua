@@ -1,6 +1,6 @@
 local addonName, GIP = ...
 _G.GIP = GIP
-GIP.version = "0.2.0"
+GIP.version = "0.2.1"
 GIP.defaults = { enabled = true, showIndicators = true, iconSize = 18, scale = 100, opacity = 90, markerMode = "icon", indicatorMode = "chevrons", indicatorPosition = "bottom-right", debug = false }
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
