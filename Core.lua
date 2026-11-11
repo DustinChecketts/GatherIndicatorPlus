@@ -1,6 +1,6 @@
 local addonName, GIP = ...
 _G.GIP = GIP
-GIP.version = "0.2.1"
+GIP.version = "0.2.2"
 GIP.defaults = { enabled = true, showIndicators = true, iconSize = 18, scale = 100, opacity = 90, markerMode = "icon", indicatorMode = "chevrons", indicatorPosition = "bottom-right", debug = false }
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
@@ -31,6 +31,8 @@ SlashCmdList.GATHERINDICATORPLUS = function(input)
         if GIP.OpenOptions then GIP.OpenOptions() end
     elseif command == "scan" then
         if GIP.Scan then GIP.Scan() end
+    elseif command == "probe" then
+        if GIP.Probe then GIP.Probe() end
     elseif command == "report" then
         if GIP.Report then GIP.Report() end
     elseif command == "debug" then
@@ -42,7 +44,7 @@ SlashCmdList.GATHERINDICATORPLUS = function(input)
         GIP.db.enabled = command == "on"
         printMessage("Enabled: " .. tostring(GIP.db.enabled))
     else
-        printMessage("v" .. GIP.version .. " | /gip report | /gip scan | /gip debug | /gip on | /gip off | /gip reset | /gip options")
+        printMessage("v" .. GIP.version .. " | /gip report | /gip scan | /gip probe | /gip debug | /gip on | /gip off | /gip reset | /gip options")
     end
 end
 frame:SetScript("OnEvent", function(_, event, arg1)
