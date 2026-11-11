@@ -5,6 +5,8 @@ GIP.defaults = { enabled = true, showIndicators = true, iconSize = 14, debug = f
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("MINIMAP_UPDATE_TRACKING")
+frame:RegisterEvent("SKILL_LINES_CHANGED")
 local function printMessage(message)
     print("|cff00ccffGIP|r: " .. tostring(message))
 end
@@ -49,5 +51,7 @@ frame:SetScript("OnEvent", function(_, event, arg1)
     elseif event == "PLAYER_LOGIN" then
         if not GIP.db then copyDefaults() end
         printMessage("Diagnostic ready. Enable Find Herbs or Find Minerals, then /gip report and /gip scan.")
+    elseif GIP.db and GIP.db.debug then
+        printMessage("Event: " .. event)
     end
 end)
