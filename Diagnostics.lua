@@ -73,9 +73,9 @@ local function inspectTooltip(tooltip)
     end
     return table.concat(lines, " / ")
 end
-function GIP.Probe()
+local function runProbe()
     if not Minimap then GIP.Print("Probe: minimap unavailable"); return end
-    GIP.Print("Probe: stand with mouse directly over a yellow gathering dot before running this command.")
+    GIP.Print("Probe: cursor sample captured.")
     GIP.Print("UpdateMouseoverAtPoint: " .. yes(type(Minimap.UpdateMouseoverAtPoint) == "function"))
     GIP.Print("GetMouseFoci: " .. yes(type(GetMouseFoci) == "function"))
     GIP.Print("GameTooltip: " .. inspectTooltip(GameTooltip))
@@ -83,4 +83,14 @@ function GIP.Probe()
     GIP.Print("Minimap regions: " .. safeCall(function() return Minimap:GetNumRegions() end))
     GIP.Print("Cursor x: " .. safeCall(function() local x = GetCursorPosition(); return x end))
     GIP.Print("No mouse movement or tracking changes performed.")
+end
+
+function GIP.Probe()
+    if C_Timer and C_Timer.After then
+        GIP.Print("Probe scheduled in 5 seconds. Close chat and hover directly over a yellow minimap dot.")
+        C_Timer.After(5, runProbe)
+    else
+        GIP.Print("Timer unavailable; sampling immediately.")
+        runProbe()
+    end
 end
