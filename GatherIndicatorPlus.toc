@@ -2,7 +2,7 @@
 ## Title: GatherIndicatorPlus
 ## Notes: Gathering minimap capability diagnostic for WoW Forever
 ## Author: StormtrooperTK421
-## Version: 0.2.1
+## Version: 0.2.2
 ## SavedVariables: GIPDB
 Core.lua
 Diagnostics.lua
